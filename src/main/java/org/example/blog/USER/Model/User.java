@@ -34,7 +34,7 @@ public class User {
 
     @NotBlank(message = "Password must not be empty")
     @Size(min = 6, message = "Password must be at least 6 characters")
-    @JsonIgnore
+//    @JsonIgnore
     @Column(nullable = false)
     private String password;
 

@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
     private UserDTO mapToDTO(User user) {
         return UserDTO.builder()
-                .id(user.getId())
+//                .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
                 .password(user.getPassword()) // include password in response
@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
 
     private User mapToEntity(UserDTO dto) {
         return User.builder()
-                .id(dto.getId())
+//                .id(dto.getId())
                 .name(dto.getName())
                 .email(dto.getEmail())
                 .password(dto.getPassword()) // store password as-is
