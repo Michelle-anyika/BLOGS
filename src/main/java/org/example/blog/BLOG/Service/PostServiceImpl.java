@@ -1,14 +1,17 @@
 package org.example.blog.BLOG.Service;
 
-
 import lombok.RequiredArgsConstructor;
 import org.example.blog.BLOG.DTO.PostDTO;
 import org.example.blog.BLOG.Model.Post;
 import org.example.blog.BLOG.Repository.PostRepository;
+import org.example.blog.BLOG.Repository.CommentRepository;
+import org.example.blog.USER.Repository.UserRepository;
 import org.example.blog.Exceptions.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
 
 import java.time.Instant;
 import java.util.List;
@@ -19,6 +22,8 @@ import java.util.stream.Collectors;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
 
     @Override
     public PostDTO createPost(PostDTO postDTO) {
@@ -48,6 +53,7 @@ public class PostServiceImpl implements PostService {
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+
         int start = Math.min((int) pageable.getOffset(), posts.size());
         int end = Math.min(start + pageable.getPageSize(), posts.size());
         return new org.springframework.data.domain.PageImpl<>(posts.subList(start, end), pageable, posts.size());
@@ -57,6 +63,12 @@ public class PostServiceImpl implements PostService {
     public PostDTO updatePost(String id, PostDTO postDTO) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
+
+        // Ownership check
+        if (!post.getUserId().equals(getLoggedInUserId())) {
+            throw new RuntimeException("You are not authorized to update this post");
+        }
+
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
         Post updated = postRepository.save(post);
@@ -67,6 +79,16 @@ public class PostServiceImpl implements PostService {
     public void deletePost(String id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
+
+        // Ownership check
+        if (!post.getUserId().equals(getLoggedInUserId())) {
+            throw new RuntimeException("You are not authorized to delete this post");
+        }
+
+        // Cascade delete comments
+        commentRepository.findByPostId(post.getId())
+                .forEach(commentRepository::delete);
+
         postRepository.delete(post);
     }
 
@@ -89,5 +111,17 @@ public class PostServiceImpl implements PostService {
                 .userId(dto.getUserId())
                 .authorName(dto.getAuthorName())
                 .build();
+    }
+
+    private String getLoggedInUserId() {
+        org.springframework.security.core.userdetails.User principal =
+                (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return userRepository.findAll().stream()
+                .filter(u -> u.getEmail().equals(principal.getUsername()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("User not found"))
+                .getId()
+                .toString();
     }
 }

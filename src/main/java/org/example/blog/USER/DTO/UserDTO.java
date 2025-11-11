@@ -13,10 +13,10 @@ import lombok.*;
 @Builder
 public class UserDTO {
 
-    private Long id;
-
-    @NotBlank(message = "Name must not be empty")
-    private String name;
+//    private Long id;
+//
+//    @NotBlank(message = "Name must not be empty")
+//    private String name;
 
     @NotBlank(message = "Email must not be empty")
     @Email(message = "Invalid email format")
