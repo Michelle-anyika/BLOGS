@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO updateUser(Long id, UserDTO userDTO) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        user.setName(userDTO.getName());
+//        user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
         user.setPassword(userDTO.getPassword()); // keep password as plain text
         User updated = userRepository.save(user);
@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
     private UserDTO mapToDTO(User user) {
         return UserDTO.builder()
 //                .id(user.getId())
-                .name(user.getName())
+//                .name(user.getName())
                 .email(user.getEmail())
                 .password(user.getPassword()) // include password in response
                 .build();
@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
     private User mapToEntity(UserDTO dto) {
         return User.builder()
 //                .id(dto.getId())
-                .name(dto.getName())
+//                .name(dto.getName())
                 .email(dto.getEmail())
                 .password(dto.getPassword()) // store password as-is
                 .build();
